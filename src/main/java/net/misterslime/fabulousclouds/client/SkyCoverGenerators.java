@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class SkyCoverGenerators {
 
-    public static final int COLOR = NativeImage.combine(255, 255, 255, 255);
+    public static final int COLOR = (255);
 
     public static void clearSkyGenerator(SimplexNoise noiseSampler, NativeImage image, double cloudiness) {
         for (int x = 0; x < 256; x++) {
@@ -27,7 +27,7 @@ public class SkyCoverGenerators {
             int x = random.nextInt(256);
             int z = random.nextInt(256);
 
-            if (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5 < cloudiness && image.getPixelRGBA(x, z) == 0 && !updatingPixel(x, z, pixels)) {
+            if (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5 < cloudiness && image.getPixelRGBA(x, z) == 0 && updatingPixel(x, z, pixels)) {
                 pixels.add(new CloudTexture.PixelCoordinate(x, z, false));
             }
         }
@@ -38,7 +38,7 @@ public class SkyCoverGenerators {
             int x = random.nextInt(256);
             int z = random.nextInt(256);
 
-            if (image.getPixelRGBA(x, z) != 0 && !updatingPixel(x, z, pixels)) {
+            if (image.getPixelRGBA(x, z) != 0 && updatingPixel(x, z, pixels)) {
                 pixels.add(new CloudTexture.PixelCoordinate(x, z, true));
             }
         }
@@ -62,7 +62,7 @@ public class SkyCoverGenerators {
             int x = random.nextInt(256);
             int z = random.nextInt(256);
 
-            if (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5 < cloudiness && image.getPixelRGBA(x, z) == 0 && !updatingPixel(x, z, pixels)) {
+            if (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5 < cloudiness && image.getPixelRGBA(x, z) == 0 && updatingPixel(x, z, pixels)) {
                 if ((int) (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5) != 0) {
                     pixels.add(new CloudTexture.PixelCoordinate(x, z, false));
                 }
@@ -75,7 +75,7 @@ public class SkyCoverGenerators {
             int x = random.nextInt(256);
             int z = random.nextInt(256);
 
-            if (image.getPixelRGBA(x, z) != 0 && !updatingPixel(x, z, pixels)) {
+            if (image.getPixelRGBA(x, z) != 0 && updatingPixel(x, z, pixels)) {
                 pixels.add(new CloudTexture.PixelCoordinate(x, z, true));
             }
         }
@@ -101,7 +101,7 @@ public class SkyCoverGenerators {
             int x = random.nextInt(256);
             int z = random.nextInt(256);
 
-            if (!updatingPixel(x, z, pixels)) {
+            if (updatingPixel(x, z, pixels)) {
                 if (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5 < cloudiness && image.getPixelRGBA(x, z) == 0) {
                     if ((int) (noiseSampler.getValue(x / 16.0, 0, z / 16.0) * 2.5) != 0) {
                         pixels.add(new CloudTexture.PixelCoordinate(x, z, true));
@@ -152,9 +152,9 @@ public class SkyCoverGenerators {
     public static boolean updatingPixel(int x, int z, List<CloudTexture.PixelCoordinate> pixels) {
         for (CloudTexture.PixelCoordinate pixel : pixels) {
             if (pixel.posX == x && pixel.posZ == z) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 }

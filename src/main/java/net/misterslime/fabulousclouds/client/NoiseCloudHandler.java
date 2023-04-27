@@ -9,7 +9,8 @@ import java.util.List;
 
 public final class NoiseCloudHandler {
 
-    public static List<CloudTexture> cloudTextures = new LinkedList<CloudTexture>() {};
+    public static List<CloudTexture> cloudTextures = new LinkedList<>() {
+    };
 
     private static long cloudIdx = -1;
     private static long timeIdx = -1;

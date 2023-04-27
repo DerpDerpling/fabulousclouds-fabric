@@ -1,11 +1,10 @@
 package net.misterslime.fabulousclouds.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import net.minecraft.client.Minecraft;
+
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.levelgen.PositionalRandomFactory;
-import net.minecraft.world.level.levelgen.RandomSource;
+
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.synth.SimplexNoise;
 import net.misterslime.fabulousclouds.util.EnumUtil;
@@ -15,7 +14,8 @@ import java.util.List;
 
 public class CloudTexture {
 
-    public List<PixelCoordinate> pixels = new LinkedList<PixelCoordinate>() {};
+    public List<PixelCoordinate> pixels = new LinkedList<>() {
+    };
 
     public SimplexNoise noise;
     public DynamicTexture cloudsTexture;

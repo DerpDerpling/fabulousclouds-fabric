@@ -3,24 +3,26 @@ package net.misterslime.fabulousclouds.mixin;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Camera;
 import net.minecraft.client.CloudStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.misterslime.fabulousclouds.FabulousClouds;
+import net.misterslime.fabulousclouds.client.CloudTexture;
 import net.misterslime.fabulousclouds.client.NoiseCloudHandler;
 import net.misterslime.fabulousclouds.config.FabulousCloudsConfig;
-import net.misterslime.fabulousclouds.client.CloudTexture;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.*;
+import org.joml.Matrix4f;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -40,6 +42,9 @@ public final class MixinLevelRenderer {
     @Shadow @NotNull private CloudStatus prevCloudsType;
     @Shadow private boolean generateClouds;
     @Shadow @NotNull private VertexBuffer cloudBuffer;
+    @Shadow private double lastCameraX;
+    @Shadow private double lastCameraY;
+    @Shadow private double lastCameraZ;
     @Unique private boolean initializedClouds = false;
 
     public MixinLevelRenderer() {
@@ -47,7 +52,7 @@ public final class MixinLevelRenderer {
     }
 
     @Inject(method = "renderClouds", at = @At("HEAD"), cancellable = true)
-    public void renderClouds(PoseStack poseStack, Matrix4f model, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo ci) {
+    public void renderClouds(PoseStack poseStack, Matrix4f matrix4f, float f, double d, double e, double g, CallbackInfo ci) {
         FabulousCloudsConfig config = FabulousClouds.getConfig();
 
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
@@ -60,20 +65,19 @@ public final class MixinLevelRenderer {
                 int i = 0;
                 for (FabulousCloudsConfig.CloudLayer cloudLayer : config.cloud_layers) {
                     CloudTexture cloudTexture = NoiseCloudHandler.cloudTextures.get(i);
-                    renderCloudLayer(poseStack, model, tickDelta, cameraX, cameraY, cameraZ, cloudHeight, cloudLayer.offset, cloudLayer.scale, cloudLayer.speed, cloudTexture.resourceLocation);
+                    renderCloudLayer(poseStack, model, tickDelta, lastCameraX, lastCameraY, lastCameraZ, cloudHeight, cloudLayer.offset, cloudLayer.scale, cloudLayer.speed, cloudTexture.resourceLocation);
                     i++;
                 }
             }
 
             if (config.enable_default_cloud_layer) {
                 CloudTexture cloudTexture = NoiseCloudHandler.cloudTextures.get(NoiseCloudHandler.cloudTextures.size() - 1);
-                renderCloudLayer(poseStack, model, tickDelta, cameraX, cameraY, cameraZ, cloudHeight, 0, 1, 1, cloudTexture.resourceLocation);
+                renderCloudLayer(poseStack, model, tickDelta, lastCameraX, lastCameraY, lastCameraZ, cloudHeight, 0, 1, 1, cloudTexture.resourceLocation);
             }
         }
 
         ci.cancel();
     }
-
     private void registerClouds(TextureManager textureManager) {
         if (!this.initializedClouds) {
             Random random = new Random();
@@ -88,9 +92,7 @@ public final class MixinLevelRenderer {
                 cloudTexture.setTexture(texture);
             }
 
-            if (FabricLoader.getInstance().isModLoaded("immersive_portals")) {
-                Minecraft.getInstance().gui.handleChat(ChatType.SYSTEM, new TranslatableComponent("messages.fabulousclouds.warn_immersive_portals"), Minecraft.getInstance().player.getUUID());
-            }
+
 
             this.initializedClouds = true;
         }
@@ -148,7 +150,7 @@ public final class MixinLevelRenderer {
         poseStack.translate(-adjustedX, adjustedY, -adjustedZ);
         if (this.cloudBuffer != null) {
             int cloudMainIndex = this.prevCloudsType == CloudStatus.FANCY ? 0 : 1;
-          
+
             for (int cloudIndex = 1; cloudMainIndex <= cloudIndex; ++cloudMainIndex) {
                 if (cloudMainIndex == 0) {
                     RenderSystem.colorMask(false, false, false, false);
@@ -191,7 +193,7 @@ public final class MixinLevelRenderer {
         boolean offsetCloudRendering = FabulousClouds.getConfig().offset_cloud_rendering;
 
         if (this.prevCloudsType == CloudStatus.FANCY) {
-            int scaledViewDistance = (int) ((minecraft.options.renderDistance / 4) / scale) / 2;
+            int scaledViewDistance = (int) ((12 / 4) / scale) / 2;
 
             if (offsetCloudRendering) {
                 float cloudHeightOffset = offset + DimensionSpecialEffects.OverworldEffects.CLOUD_LEVEL - 63;
@@ -255,7 +257,7 @@ public final class MixinLevelRenderer {
                 }
             }
         } else {
-            int scaledRenderDistance = (int) (minecraft.options.renderDistance / scale);
+            int scaledRenderDistance = (int) (12 / scale);
 
             if (offsetCloudRendering) {
                 float cloudHeightOffset = offset + DimensionSpecialEffects.OverworldEffects.CLOUD_LEVEL - 63;
